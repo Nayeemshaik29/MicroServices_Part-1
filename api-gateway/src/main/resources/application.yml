@@ -1,4 +1,5 @@
 server:
+  webflux:
   port: 8080
 
 spring:
@@ -8,11 +9,15 @@ spring:
     gateway:
       routes:
         - id: order-service
-          uri: lb://order-service
+          uri: lb://ORDER-SERVICE
           predicates:
             - Path=/orders/**
           filters:
             - StripPrefix=0
+            - name : LoggingOrdersFilter
+            -  name : Authentication
+               args:
+                 isEnabled: true
 
         - id: inventory-service
           uri: lb://inventory-service
