@@ -1,27 +1,59 @@
 package com.codingshuttle.ecom.api_gateway.filters;
 
 
+import com.codingshuttle.ecom.api_gateway.service.JwtService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 @Slf4j
 public class AuthenticationGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthenticationGatewayFilterFactory.Config> {
 
+    private final JwtService jwtService;
 
 
-
-    public AuthenticationGatewayFilterFactory()
+    public AuthenticationGatewayFilterFactory(JwtService jwtService)
     {
          super(Config.class);
+         this.jwtService = jwtService;
     }
 
     @Override
     public GatewayFilter apply(Config config) {
-        return null;
+        return (exchange, chain) -> {
+
+            if(!config.isEnabled) return chain.filter(exchange);
+
+            String headers = exchange.getRequest().getHeaders().getFirst("Authorization");
+            if(headers == null)
+            {
+                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                return exchange.getResponse().setComplete();
+            }
+            String token = headers.split("Bearer")[1];
+
+            List<String> userId = jwtService.getUserRoleFromToken(token);
+
+            exchange.getRequest()
+                    .mutate()
+                    .header("X-User-Id",userId.toString())
+                    .build();
+
+
+
+
+
+
+            return chain.filter(exchange);
+
+        };
     }
 
     @Data
