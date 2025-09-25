@@ -5,6 +5,7 @@ import com.codingshuttle.ecom.order_service.dtos.OrderRequestDto;
 import com.codingshuttle.ecom.order_service.services.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,9 +19,13 @@ public class OrderController {
     private final OrderService orderService;
     private final InventoryOpenFeignClient inventoryOpenFeignClient;
 
+    @Value("${my.variable}")
+    private String  myVariable;
+
     @GetMapping("/helloOrders")
-    public String helloOrders(@RequestHeader("X-User-Id") Long userId){
-        return "Hello from OrderService";
+    public String helloOrders(){
+
+        return "Hello from OrderService, my variable is: "+ myVariable;
     }
 
     @PostMapping("/create-order")
